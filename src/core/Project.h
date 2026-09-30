@@ -19,6 +19,16 @@ struct Clip {
     double contrast = 1.0;   // 0..3
     double saturation = 1.0; // 0..3
     double blur = 0.0;       // 0..10
+    // DaVinci Color: wheels lite
+    double temperature = 0.0; // -1..1 (quente/frio)
+    double tint = 0.0;        // -1..1 (verde/magenta)
+    double vignette = 0.0;    // 0..1
+    double opacity = 1.0;     // 0..1 (After)
+    double scale = 1.0;       // 0.25..4 (After transform)
+    double posX = 0.0, posY = 0.0; // -500..500
+    double rotation = 0.0;    // -180..180
+    double fadeIn = 0.0, fadeOut = 0.0; // segundos (Premiere transition)
+    QString effect;           // "" | "pb" | "cinematic" | "vintage" | "sharpen"
     QString text;            // se kind==text
     int textSize = 48;
     QString textColor = "white";

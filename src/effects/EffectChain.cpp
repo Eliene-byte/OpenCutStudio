@@ -1,10 +1,24 @@
 #include "EffectChain.h"
 
 QString EffectChain::eqFilter(const Clip &c) {
-    // eq=brightness (-1..1) contrast (0..3) saturation (0..3)
     QString f = QString("eq=brightness=%1:contrast=%2:saturation=%3")
         .arg(c.brightness).arg(c.contrast).arg(c.saturation);
+    // Cor quente/fria aproximada via colorbalance + colortemperature
+    if (qAbs(c.temperature) > 0.01)
+        f += QString(",colortemperature=temperature=%1").arg(int(6500 + c.temperature*3000));
+    if (qAbs(c.tint) > 0.01)
+        f += QString(",colorbalance=gm=%1:bm=%2").arg(-c.tint*0.5).arg(c.tint*0.5);
+    if (c.effect == "pb") f += ",hue=s=0";
+    else if (c.effect == "cinematic") f += ",eq=contrast=1.15:saturation=0.85,colorbalance=rs=.15:bs=.25";
+    else if (c.effect == "vintage") f += ",curves=vintage,noise=alls=8:allf=t";
+    else if (c.effect == "sharpen") f += ",unsharp=5:5:0.8";
     if (c.blur > 0.01) f += QString(",gblur=sigma=%1").arg(c.blur);
+    // Transform After-lite: escala + opacidade
+    if (qAbs(c.scale - 1.0) > 0.01) f += QString(",scale=iw*%1:ih*%1").arg(c.scale);
+    if (c.opacity < 0.99) f += QString(",format=rgba,colorchannelmixer=aa=%1").arg(c.opacity);
+    if (c.vignette > 0.01) f += QString(",vignette=PI/%1").arg(5.0 - c.vignette*3.0);
+    if (c.fadeIn > 0) f += QString(",fade=t=in:st=0:d=%1").arg(c.fadeIn);
+    if (c.fadeOut > 0) f += QString(",fade=t=out:st=%1:d=%2").arg(qMax(0.0, c.duration - c.fadeOut)).arg(c.fadeOut);
     return f;
 }
 

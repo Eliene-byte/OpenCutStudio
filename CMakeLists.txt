@@ -25,6 +25,10 @@ set(SOURCES
   src/ui/PreviewWidget.cpp
   src/ui/InspectorWidget.cpp
   src/ui/MediaBinWidget.cpp
+  src/ui/ColorPanel.cpp
+  src/ui/EffectsPanel.cpp
+  src/ui/AudioMixer.cpp
+  src/ui/DeliverPanel.cpp
   src/effects/EffectChain.cpp
 )
 
@@ -36,6 +40,11 @@ set(HEADERS
   src/ui/PreviewWidget.h
   src/ui/InspectorWidget.h
   src/ui/MediaBinWidget.h
+  src/ui/ColorPanel.h
+  src/ui/EffectsPanel.h
+  src/ui/AudioMixer.h
+  src/ui/DeliverPanel.h
+  src/ui/Theme.h
   src/effects/EffectChain.h
 )
 

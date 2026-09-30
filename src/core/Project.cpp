@@ -10,6 +10,9 @@ QJsonObject Clip::toJson() const {
     o["saturation"]=saturation; o["blur"]=blur;
     o["text"]=text; o["textSize"]=textSize; o["textColor"]=textColor;
     o["volume"]=volume; o["transition"]=transition;
+    o["temperature"]=temperature; o["tint"]=tint; o["vignette"]=vignette;
+    o["opacity"]=opacity; o["scale"]=scale; o["posX"]=posX; o["posY"]=posY;
+    o["rotation"]=rotation; o["fadeIn"]=fadeIn; o["fadeOut"]=fadeOut; o["effect"]=effect;
     return o;
 }
 Clip Clip::fromJson(const QJsonObject &o) {
@@ -24,6 +27,11 @@ Clip Clip::fromJson(const QJsonObject &o) {
     c.text=o["text"].toString(); c.textSize=o["textSize"].toInt(48);
     c.textColor=o["textColor"].toString("white");
     c.volume=o["volume"].toDouble(1.0); c.transition=o["transition"].toString();
+    c.temperature=o["temperature"].toDouble(); c.tint=o["tint"].toDouble();
+    c.vignette=o["vignette"].toDouble(); c.opacity=o["opacity"].toDouble(1.0);
+    c.scale=o["scale"].toDouble(1.0); c.posX=o["posX"].toDouble(); c.posY=o["posY"].toDouble();
+    c.rotation=o["rotation"].toDouble(); c.fadeIn=o["fadeIn"].toDouble(); c.fadeOut=o["fadeOut"].toDouble();
+    c.effect=o["effect"].toString();
     return c;
 }
 
