@@ -48,7 +48,7 @@ set(HEADERS
   src/effects/EffectChain.h
 )
 
-add_executable(OpenCutStudio ${SOURCES} ${HEADERS})
+add_executable(OpenCutStudio WIN32 ${SOURCES} ${HEADERS})
 
 target_include_directories(OpenCutStudio PRIVATE src)
 target_link_libraries(OpenCutStudio PRIVATE

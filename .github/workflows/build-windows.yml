@@ -36,7 +36,17 @@ jobs:
           if (-not $windeploy) { $windeploy = Get-Command windeployqt.exe -ErrorAction SilentlyContinue }
           if (-not $windeploy) { Get-ChildItem -Path "C:/Qt" -Recurse -Filter windeployqt.exe -ErrorAction SilentlyContinue | Select-Object -First 1 | ForEach-Object { $windeploy = $_ } }
           Write-Host "windeployqt: $($windeploy.Source ?? $windeploy.FullName)"
-          & ($windeploy.Source ?? $windeploy.FullName) dist/OpenCutStudio.exe --release --no-translations --no-opengl-sw
+          & ($windeploy.Source ?? $windeploy.FullName) dist/OpenCutStudio.exe --release --no-translations --compiler-runtime
+          Write-Host "=== dist ==="; Get-ChildItem dist | Format-Table Name, Length
+          if (-not (Test-Path "dist/platforms/qwindows.dll")) { Write-Error "qwindows.dll ausente — deploy falhou"; exit 1 }
+      - name: Teste smoke (exe abre sem crash)
+        shell: pwsh
+        run: |
+          $p = Start-Process dist/OpenCutStudio.exe -PassThru
+          Start-Sleep 5
+          if ($p.HasExited) { Write-Error "Exe fechou em <5s — crash na inicialização"; exit 1 }
+          Stop-Process -Id $p.Id -Force
+          Write-Host "Smoke OK"
       - name: Zip portable
         shell: pwsh
         run: Compress-Archive dist/* OpenCutStudio-windows-x64.zip -Force
