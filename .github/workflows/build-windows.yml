@@ -1,0 +1,49 @@
+name: Build Windows
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar Qt6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: 6.6.2
+          arch: win64_mingw
+          modules: qtmultimedia
+      - name: Instalar FFmpeg (portable)
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip -OutFile ffmpeg.zip
+          Expand-Archive ffmpeg.zip -DestinationPath ffmpeg-dl
+          $exe = Get-ChildItem ffmpeg-dl -Recurse -Filter ffmpeg.exe | Select-Object -First 1
+          $probe = Get-ChildItem ffmpeg-dl -Recurse -Filter ffprobe.exe | Select-Object -First 1
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item $exe.FullName dist/
+          Copy-Item $probe.FullName dist/
+      - name: Configurar + Compilar (MinGW)
+        shell: pwsh
+        run: |
+          cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel 2
+          Copy-Item build/bin/OpenCutStudio.exe dist/
+          & "$env:Qt6_DIR/bin/windeployqt.exe" dist/OpenCutStudio.exe --release --no-translations --no-opengl-sw
+      - name: Zip portable
+        shell: pwsh
+        run: Compress-Archive dist/* OpenCutStudio-windows-x64.zip -Force
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: OpenCutStudio-windows-x64
+          path: OpenCutStudio-windows-x64.zip
+      - name: Release automática (tags)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: OpenCutStudio-windows-x64.zip
+          generate_release_notes: true
