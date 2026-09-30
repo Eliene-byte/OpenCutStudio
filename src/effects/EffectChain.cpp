@@ -48,15 +48,32 @@ EffectChain::Plan EffectChain::build(const Project &p, const QString &outPath, c
     auto esc = [](QString s){ s.replace("'","\\'"); s.replace(":","\\:"); return s; };
 
     for (auto &c : videos) {
-        if (c.kind == "text" || c.kind == "color") continue; // overlay via drawtext depois
+        // Texto puro vira fundo colorido com drawtext (antes era ignorado = sumia no export)
+        if (c.filePath.isEmpty()) {
+            plan.inputArgs << "-f" << "lavfi" << "-i"
+                << QString("color=c=black:s=%1x%2:r=%3:d=%4").arg(p.width).arg(p.height).arg(p.fps).arg(c.duration);
+            QString chain = QString("[%1:v]setpts=PTS-STARTPTS,%2,settb=AVTB,fps=%3")
+                .arg(idx).arg(eqFilter(c)).arg(p.fps);
+            if (!c.text.isEmpty())
+                chain += QString(",drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='%1':fontsize=%2:fontcolor=%3:x=(w-text_w)/2:y=(h-text_h)/2")
+                    .arg(esc(c.text)).arg(c.textSize).arg(c.textColor);
+            chain += QString("[v%1]").arg(vCount);
+            vc << chain;
+            idx++; vCount++;
+            continue;
+        }
+        if (c.kind == "color") continue;
+        // Imagem precisa de -loop 1 senão exporta 1 frame e o concat quebra
+        if (c.kind == "image")
+            plan.inputArgs << "-loop" << "1" << "-framerate" << QString::number(p.fps);
         plan.inputArgs << "-ss" << QString::number(c.inPoint)
                        << "-t" << QString::number(c.duration)
                        << "-i" << c.filePath;
         QString chain = QString("[%1:v]setpts=PTS-STARTPTS,scale=%2:%3:flags=fast_bilinear,%4,settb=AVTB,fps=%5")
             .arg(idx).arg(p.width).arg(p.height).arg(eqFilter(c)).arg(p.fps);
-        // texto simples sobreposto (After-effects lite)
+        // texto simples sobreposto (precisa fontfile no Windows senão o ffmpeg falha)
         if (!c.text.isEmpty())
-            chain += QString(",drawtext=text='%1':fontsize=%2:fontcolor=%3:x=(w-text_w)/2:y=h-80")
+            chain += QString(",drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='%1':fontsize=%2:fontcolor=%3:x=(w-text_w)/2:y=h-80")
                 .arg(esc(c.text)).arg(c.textSize).arg(c.textColor);
         chain += QString("[v%1]").arg(vCount);
         vc << chain;
@@ -86,14 +103,15 @@ EffectChain::Plan EffectChain::build(const Project &p, const QString &outPath, c
     plan.filterComplex = vc.join(";") + (vc.isEmpty()?"":";") + ac.join(";") + (ac.isEmpty()?"":";") + filt;
     plan.mapArgs << "-map" << "[vout]" << "-map" << "[aout]";
 
-    // Presets leves para PC modesto
-    QString vcodec = "libx264", extra = "";
+    // Presets leves para PC modesto (sem -vf junto de -filter_complex = erro fatal)
+    QString extra = "";
     if (preset == "Leve 720p") extra = "-preset veryfast -crf 26";
-    else if (preset == "Leve 480p") extra = "-preset veryfast -crf 28 -vf scale=854:480";
-    else extra = "-preset fast -crf 23"; // Padrão 1080p
+    else if (preset == "Leve 480p") extra = "-preset veryfast -crf 28";
+    else extra = "-preset fast -crf 23";
     plan.mapArgs << extra.split(" ", Qt::SkipEmptyParts)
-                 << "-c:a" << "aac" << "-b:a" << "128k"
-                 << "-movflags" << "+faststart" << "-y" << outPath;
+                 << "-c:v" << "libx264" << "-pix_fmt" << "yuv420p"
+                 << "-c:a" << "aac" << "-b:a" << "128k" << "-ar" << "44100" << "-ac" << "2"
+                 << "-movflags" << "+faststart" << "-shortest" << "-y" << outPath;
     plan.nVideoInputs = vCount;
     return plan;
 }

@@ -4,30 +4,33 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonValue>
 
 FFmpegRunner::FFmpegRunner(QObject *parent): QObject(parent) {}
 
 QString FFmpegRunner::ffmpegPath() {
     QString app = QCoreApplication::applicationDirPath();
-    for (auto p : {app + "/ffmpeg.exe", app + "/bin/ffmpeg.exe", QString("ffmpeg.exe"), QString("ffmpeg")}) {
-        if (QFileInfo::exists(p) || p == QString("ffmpeg.exe") || p == QString("ffmpeg")) {
-            if (QFileInfo::exists(p)) return QDir(p).absolutePath();
-        }
+    QStringList cand = {app + "/ffmpeg.exe", app + "/bin/ffmpeg.exe"};
+    for (auto &p : cand) {
+        if (QFileInfo::exists(p)) return QDir::toNativeSeparators(QFileInfo(p).absoluteFilePath());
     }
     return "ffmpeg"; // cai no PATH
 }
 QString FFmpegRunner::ffprobePath() {
     QString app = QCoreApplication::applicationDirPath();
     QString c = app + "/ffprobe.exe";
-    if (QFileInfo::exists(c)) return QDir(c).absolutePath();
+    if (QFileInfo::exists(c)) return QDir::toNativeSeparators(QFileInfo(c).absoluteFilePath());
     return "ffprobe";
 }
 double FFmpegRunner::probeDuration(const QString &file) {
+    if (file.isEmpty() || !QFileInfo::exists(file)) return 0;
     QProcess p;
     p.start(ffprobePath(), {"-v","quiet","-print_format","json","-show_format", file});
-    p.waitForFinished(5000);
+    if (!p.waitForFinished(8000)) { p.kill(); return 0; }
     auto doc = QJsonDocument::fromJson(p.readAllStandardOutput());
-    return doc.object()["format"].toObject()["duration"].toString("0").toDouble();
+    QJsonValue d = doc.object()["format"].toObject()["duration"];
+    if (d.isString()) return d.toString("0").toDouble();
+    return d.toDouble(0);
 }
 QProcess *FFmpegRunner::run(const QStringList &args, const QString &workDir) {
     auto *p = new QProcess(this);

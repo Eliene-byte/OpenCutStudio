@@ -47,7 +47,7 @@ void PreviewWidget::makeThumb() {
     p.waitForFinished(8000);
     QPixmap px(tmp);
     if (!px.isNull()) {
-        m_img->setPixmap(px.scaled(m_img->size().expandedTo(QSize(640,360)), Qt::KeepAspectRatio, Qt::FastTransformation));
+        m_img->setPixmap(px.scaled(QSize(640,360), Qt::KeepAspectRatio, Qt::FastTransformation));
     } else {
         m_img->setText("🎬 " + QFileInfo(m_file).fileName() + "\n(thumbnail indisponível, export funciona)");
     }

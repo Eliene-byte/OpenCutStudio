@@ -106,8 +106,6 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent) {
     // CapCut drag-and-drop
     connect(m_timeline, &TimelineWidget::filesDropped, this, &MainWindow::onFilesDropped);
     connect(m_timeline, &TimelineWidget::clipMoved, this, &MainWindow::onClipMoved);
-    // Arrastar arquivo do Explorer direto para a janela também importa
-    setAcceptDrops(true);
     log("OpenCut pronto. Arraste vídeos para a timeline. FFmpeg: " + FFmpegRunner::ffmpegPath());
 }
 void MainWindow::log(const QString &s){ m_log->append(s.mid(0, 2000)); }
@@ -170,7 +168,7 @@ void MainWindow::openProject() {
     QFile fh(f); fh.open(QIODevice::ReadOnly);
     m_proj = Project::fromJson(QJsonDocument::fromJson(fh.readAll()).object()); fh.close();
     m_inspector->setProject(&m_proj); m_color->setProject(&m_proj);
-    m_fx->setProject(&m_proj); m_mixer->setProject(&m_proj);
+    m_fx->setProject(&m_proj); m_mixer->setProject(&m_proj); m_photo->setProject(&m_proj);
     m_timeline->setProject(&m_proj); refreshAll();
 }
 void MainWindow::playPreview() { m_preview->playPause(); }
