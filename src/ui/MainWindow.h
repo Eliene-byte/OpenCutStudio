@@ -5,6 +5,7 @@
 #include "core/FFmpegRunner.h"
 class TimelineWidget; class PreviewWidget; class InspectorWidget; class MediaBinWidget;
 class ColorPanel; class EffectsPanel; class AudioMixer; class DeliverPanel;
+class PhotoPanel; class GalleryPanel;
 class QTextEdit; class QProgressBar; class QTabWidget; class QTabBar;
 
 class MainWindow : public QMainWindow {
@@ -26,6 +27,7 @@ private:
     TimelineWidget *m_timeline; PreviewWidget *m_preview;
     InspectorWidget *m_inspector; MediaBinWidget *m_bin;
     ColorPanel *m_color; EffectsPanel *m_fx; AudioMixer *m_mixer; DeliverPanel *m_deliver;
+    PhotoPanel *m_photo; GalleryPanel *m_gallery;
     QTabWidget *m_rightTabs;
     QTextEdit *m_log; QProgressBar *m_prog;
     FFmpegRunner m_ff; QProcess *m_cur=nullptr;

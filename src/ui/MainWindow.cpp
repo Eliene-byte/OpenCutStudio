@@ -7,6 +7,8 @@
 #include "ui/EffectsPanel.h"
 #include "ui/AudioMixer.h"
 #include "ui/DeliverPanel.h"
+#include "ui/PhotoPanel.h"
+#include "ui/GalleryPanel.h"
 #include "ui/Theme.h"
 #include "effects/EffectChain.h"
 #include <QSplitter>
@@ -61,12 +63,16 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent) {
     m_fx = new EffectsPanel(this); m_fx->setProject(&m_proj);
     m_mixer = new AudioMixer(this); m_mixer->setProject(&m_proj);
     m_deliver = new DeliverPanel(this);
+    m_photo = new PhotoPanel(this); m_photo->setProject(&m_proj);
+    m_gallery = new GalleryPanel(this);
 
     // Abas direitas = páginas DaVinci: Editar | Fusão | Cor | Áudio | Entrega
     m_rightTabs = new QTabWidget(this);
     m_rightTabs->addTab(m_inspector, "Editar");
     m_rightTabs->addTab(m_fx, "Fusão");
     m_rightTabs->addTab(m_color, "Cor");
+    m_rightTabs->addTab(m_photo, "Foto");
+    m_rightTabs->addTab(m_gallery, "Efeitos ∞");
     m_rightTabs->addTab(m_mixer, "Áudio");
     m_rightTabs->addTab(m_deliver, "Entrega");
     m_rightTabs->setMinimumWidth(300);
@@ -94,6 +100,8 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent) {
     connect(m_color, &ColorPanel::changed, this, &MainWindow::refreshAll);
     connect(m_fx, &EffectsPanel::changed, this, &MainWindow::refreshAll);
     connect(m_mixer, &AudioMixer::changed, this, &MainWindow::refreshAll);
+    connect(m_photo, &PhotoPanel::changed, this, &MainWindow::refreshAll);
+    connect(m_gallery, &GalleryPanel::pickEffect, this, &MainWindow::quickFilter);
     connect(&m_ff, &FFmpegRunner::logLine, this, &MainWindow::log);
     // CapCut drag-and-drop
     connect(m_timeline, &TimelineWidget::filesDropped, this, &MainWindow::onFilesDropped);
@@ -106,7 +114,7 @@ void MainWindow::log(const QString &s){ m_log->append(s.mid(0, 2000)); }
 void MainWindow::refreshAll(){ m_timeline->update(); }
 void MainWindow::onClipSelected(int t,int c){
     m_selT=t; m_selC=c;
-    m_inspector->edit(t,c); m_color->edit(t,c); m_fx->edit(t,c);
+    m_inspector->edit(t,c); m_color->edit(t,c); m_fx->edit(t,c); m_photo->edit(t,c);
     statusBar()->showMessage(QString("Selecionado: trilha %1 bloco %2").arg(t).arg(c));
 }
 void MainWindow::importMedia() {

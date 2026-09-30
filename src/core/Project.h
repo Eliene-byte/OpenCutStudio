@@ -28,7 +28,16 @@ struct Clip {
     double posX = 0.0, posY = 0.0; // -500..500
     double rotation = 0.0;    // -180..180
     double fadeIn = 0.0, fadeOut = 0.0; // segundos (Premiere transition)
-    QString effect;           // "" | "pb" | "cinematic" | "vintage" | "sharpen"
+    QString effect;           // id da EffectsLibrary + legacy pb/cinematic/...
+    QString customFilter;     // ffmpeg livre ("infinito")
+    // Photoshop completo
+    double cropPct = 0.0;     // 0..40 (% crop central)
+    bool flipH = false, flipV = false;
+    double hue = 0.0;         // -180..180
+    double highlights = 0.0;  // -1..1
+    double shadows = 0.0;     // -1..1
+    double clarity = 0.0;     // 0..2
+    double grain = 0.0;       // 0..30
     QString text;            // se kind==text
     int textSize = 48;
     QString textColor = "white";

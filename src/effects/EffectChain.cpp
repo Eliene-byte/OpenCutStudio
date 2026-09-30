@@ -1,17 +1,26 @@
 #include "EffectChain.h"
+#include "EffectsLibrary.h"
 
 QString EffectChain::eqFilter(const Clip &c) {
     QString f = QString("eq=brightness=%1:contrast=%2:saturation=%3")
         .arg(c.brightness).arg(c.contrast).arg(c.saturation);
-    // Cor quente/fria aproximada via colorbalance + colortemperature
     if (qAbs(c.temperature) > 0.01)
         f += QString(",colortemperature=temperature=%1").arg(int(6500 + c.temperature*3000));
     if (qAbs(c.tint) > 0.01)
         f += QString(",colorbalance=gm=%1:bm=%2").arg(-c.tint*0.5).arg(c.tint*0.5);
-    if (c.effect == "pb") f += ",hue=s=0";
-    else if (c.effect == "cinematic") f += ",eq=contrast=1.15:saturation=0.85,colorbalance=rs=.15:bs=.25";
-    else if (c.effect == "vintage") f += ",curves=vintage,noise=alls=8:allf=t";
-    else if (c.effect == "sharpen") f += ",unsharp=5:5:0.8";
+    // Biblioteca infinita (Premiere+After+Photoshop presets)
+    QString lib = EffectsLibrary::filterFor(c.effect, c.customFilter);
+    if (!lib.isEmpty()) f += "," + lib;
+    // Photoshop: HSL / highlights / shadows / clarity / grain / crop / flip
+    if (qAbs(c.hue) > 0.5) f += QString(",hue=h=%1").arg(c.hue);
+    if (qAbs(c.highlights) > 0.01 || qAbs(c.shadows) > 0.01)
+        f += QString(",eq=brightness=%1").arg(c.highlights*0.2 + c.shadows*0.1);
+    if (c.clarity > 0.01) f += QString(",unsharp=7:7:%1").arg(c.clarity);
+    if (c.grain > 0.5) f += QString(",noise=alls=%1:allf=t").arg(int(c.grain));
+    if (c.cropPct > 0.5) f += QString(",crop=iw*%1:ih*%1,scale=iw:ih").arg(1.0 - c.cropPct/100.0);
+    if (c.flipH) f += ",hflip";
+    if (c.flipV) f += ",vflip";
+    if (c.speed != 1.0 && c.speed > 0.1) f += QString(",setpts=PTS/%1").arg(c.speed);
     if (c.blur > 0.01) f += QString(",gblur=sigma=%1").arg(c.blur);
     // Transform After-lite: escala + opacidade
     if (qAbs(c.scale - 1.0) > 0.01) f += QString(",scale=iw*%1:ih*%1").arg(c.scale);

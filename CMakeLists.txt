@@ -29,7 +29,10 @@ set(SOURCES
   src/ui/EffectsPanel.cpp
   src/ui/AudioMixer.cpp
   src/ui/DeliverPanel.cpp
+  src/ui/PhotoPanel.cpp
+  src/ui/GalleryPanel.cpp
   src/effects/EffectChain.cpp
+  src/effects/EffectsLibrary.cpp
 )
 
 set(HEADERS
@@ -44,8 +47,11 @@ set(HEADERS
   src/ui/EffectsPanel.h
   src/ui/AudioMixer.h
   src/ui/DeliverPanel.h
+  src/ui/PhotoPanel.h
+  src/ui/GalleryPanel.h
   src/ui/Theme.h
   src/effects/EffectChain.h
+  src/effects/EffectsLibrary.h
 )
 
 add_executable(OpenCutStudio WIN32 ${SOURCES} ${HEADERS})

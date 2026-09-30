@@ -13,6 +13,8 @@ QJsonObject Clip::toJson() const {
     o["temperature"]=temperature; o["tint"]=tint; o["vignette"]=vignette;
     o["opacity"]=opacity; o["scale"]=scale; o["posX"]=posX; o["posY"]=posY;
     o["rotation"]=rotation; o["fadeIn"]=fadeIn; o["fadeOut"]=fadeOut; o["effect"]=effect;
+    o["customFilter"]=customFilter; o["cropPct"]=cropPct; o["flipH"]=flipH; o["flipV"]=flipV;
+    o["hue"]=hue; o["highlights"]=highlights; o["shadows"]=shadows; o["clarity"]=clarity; o["grain"]=grain;
     return o;
 }
 Clip Clip::fromJson(const QJsonObject &o) {
@@ -32,6 +34,10 @@ Clip Clip::fromJson(const QJsonObject &o) {
     c.scale=o["scale"].toDouble(1.0); c.posX=o["posX"].toDouble(); c.posY=o["posY"].toDouble();
     c.rotation=o["rotation"].toDouble(); c.fadeIn=o["fadeIn"].toDouble(); c.fadeOut=o["fadeOut"].toDouble();
     c.effect=o["effect"].toString();
+    c.customFilter=o["customFilter"].toString();
+    c.cropPct=o["cropPct"].toDouble(); c.flipH=o["flipH"].toBool(); c.flipV=o["flipV"].toBool();
+    c.hue=o["hue"].toDouble(); c.highlights=o["highlights"].toDouble(); c.shadows=o["shadows"].toDouble();
+    c.clarity=o["clarity"].toDouble(); c.grain=o["grain"].toDouble();
     return c;
 }
 
