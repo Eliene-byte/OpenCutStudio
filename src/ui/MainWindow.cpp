@@ -41,6 +41,18 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent) {
     tb->addAction("▶ Preview", this, &MainWindow::playPreview);
     tb->addAction("⬇ Exportar", this, &MainWindow::exportVideo);
 
+    // Barra CapCut: 1 clique, arrasta e cola
+    auto *cap = addToolBar("CapCut");
+    cap->addAction("📱 9:16 TikTok", this, &MainWindow::setVertical);
+    cap->addAction("🖥 16:9 YouTube", this, &MainWindow::setHorizontal);
+    cap->addSeparator();
+    cap->addAction("✨ P&B", [this](){ quickFilter("pb"); });
+    cap->addAction("🎬 Cinemático", [this](){ quickFilter("cinematic"); });
+    cap->addAction("📼 Vintage", [this](){ quickFilter("vintage"); });
+    cap->addAction("🧹 Limpar filtro", [this](){ quickFilter(""); });
+    cap->addSeparator();
+    cap->addAction("🔤 Legenda auto", this, &MainWindow::autoCaption);
+
     m_bin = new MediaBinWidget(this);
     m_preview = new PreviewWidget(this);
     m_inspector = new InspectorWidget(this);
@@ -83,7 +95,12 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent) {
     connect(m_fx, &EffectsPanel::changed, this, &MainWindow::refreshAll);
     connect(m_mixer, &AudioMixer::changed, this, &MainWindow::refreshAll);
     connect(&m_ff, &FFmpegRunner::logLine, this, &MainWindow::log);
-    log("OpenCut pronto. FFmpeg: " + FFmpegRunner::ffmpegPath());
+    // CapCut drag-and-drop
+    connect(m_timeline, &TimelineWidget::filesDropped, this, &MainWindow::onFilesDropped);
+    connect(m_timeline, &TimelineWidget::clipMoved, this, &MainWindow::onClipMoved);
+    // Arrastar arquivo do Explorer direto para a janela também importa
+    setAcceptDrops(true);
+    log("OpenCut pronto. Arraste vídeos para a timeline. FFmpeg: " + FFmpegRunner::ffmpegPath());
 }
 void MainWindow::log(const QString &s){ m_log->append(s.mid(0, 2000)); }
 void MainWindow::refreshAll(){ m_timeline->update(); }
@@ -164,4 +181,52 @@ void MainWindow::exportVideo() {
 void MainWindow::onExportFinished(int code, QProcess::ExitStatus) {
     m_prog->hide();
     QMessageBox::information(this, "Export", code==0 ? "Vídeo exportado!" : "Falha — veja o log.");
+}
+// ---- CapCut: arrasta e cola ----
+void MainWindow::addFilesAt(const QStringList &files, double timeSec, int track) {
+    double cursor = timeSec < 0 ? m_proj.duration() : timeSec;
+    for (auto &f : files) {
+        if (f.isEmpty()) continue;
+        // vindo da MediaBin como nome curto: resolve caminho real
+        QString real = f;
+        if (!QFile::exists(real)) {
+            for (auto &known : m_bin->files())
+                if (known.endsWith(f) || f.endsWith(known.split("/").last().split("\\").last())) { real = known; break; }
+        }
+        if (!QFile::exists(real)) continue;
+        Clip c; c.id = QUuid::createUuid().toString(); c.filePath = real;
+        QString l = real.toLower();
+        c.kind = (l.endsWith(".mp3")||l.endsWith(".wav")) ? "audio" : ((l.endsWith(".png")||l.endsWith(".jpg")||l.endsWith(".jpeg")||l.endsWith(".webp")) ? "image" : "video");
+        if (c.kind == "image") c.duration = 5.0;
+        else { double d = FFmpegRunner::probeDuration(real); c.duration = d > 0 ? d : 5.0; }
+        c.startOnTrack = cursor;
+        m_proj.addClip((c.kind == "audio" ? 2 : qBound(0, track, 1)), c);
+        if (c.kind != "audio") m_preview->load(real);
+        cursor += c.duration;
+    }
+    refreshAll();
+}
+void MainWindow::onFilesDropped(QStringList files, double t, int track) { addFilesAt(files, t, track); }
+void MainWindow::onClipMoved(int t, int c, double nt) {
+    if (t<0||t>=m_proj.tracks.size()||c<0||c>=m_proj.tracks[t].clips.size()) return;
+    m_proj.tracks[t].clips[c].startOnTrack = qMax(0.0, nt);
+    m_timeline->update();
+}
+void MainWindow::quickFilter(const QString &fx) {
+    if (m_selT<0||m_selC<0) { QMessageBox::information(this,"Filtro","Selecione um bloco na timeline primeiro."); return; }
+    m_proj.tracks[m_selT].clips[m_selC].effect = fx;
+    m_color->edit(m_selT, m_selC); refreshAll();
+}
+void MainWindow::setVertical() { m_proj.width = 720; m_proj.height = 1280; log("Formato 9:16 TikTok/Reels."); }
+void MainWindow::setHorizontal() { m_proj.width = 1280; m_proj.height = 720; log("Formato 16:9 YouTube."); }
+void MainWindow::autoCaption() {
+    QString t = QInputDialog::getMultiLineText(this, "Legenda auto", "Uma frase por linha (vira títulos na timeline):");
+    if (t.isEmpty()) return;
+    double cursor = m_proj.duration();
+    for (auto &line : t.split("\n", Qt::SkipEmptyParts)) {
+        Clip c; c.id = QUuid::createUuid().toString(); c.kind="video"; c.text=line.trimmed();
+        c.duration=2.5; c.startOnTrack=cursor; cursor+=2.5;
+        m_proj.addClip(1, c);
+    }
+    refreshAll();
 }

@@ -15,6 +15,11 @@ private slots:
     void importMedia(); void exportVideo(); void onExportFinished(int, QProcess::ExitStatus);
     void saveProject(); void openProject(); void addTextClip(); void playPreview();
     void splitClip(); void deleteClip(); void onClipSelected(int track, int clip);
+    void onFilesDropped(QStringList files, double t, int track);
+    void onClipMoved(int t, int c, double nt);
+    void quickFilter(const QString &fx);
+    void setVertical(); void setHorizontal(); void autoCaption();
+    void addFilesAt(const QStringList &files, double timeSec, int track);
 private:
     Project m_proj;
     int m_selT=-1, m_selC=-1;
