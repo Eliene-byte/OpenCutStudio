@@ -14,7 +14,7 @@ else()
   add_compile_options(-Os -ffunction-sections -fdata-sections)
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia MultimediaWidgets Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(SOURCES
   src/main.cpp
@@ -58,7 +58,7 @@ add_executable(OpenCutStudio WIN32 ${SOURCES} ${HEADERS})
 
 target_include_directories(OpenCutStudio PRIVATE src)
 target_link_libraries(OpenCutStudio PRIVATE
-  Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets Qt6::Concurrent
+  Qt6::Widgets
 )
 
 # Pasta de saída

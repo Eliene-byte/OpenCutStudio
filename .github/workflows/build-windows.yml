@@ -15,7 +15,6 @@ jobs:
         with:
           version: 6.6.2
           arch: win64_mingw
-          modules: qtmultimedia
       - name: Instalar FFmpeg (portable)
         shell: pwsh
         run: |
