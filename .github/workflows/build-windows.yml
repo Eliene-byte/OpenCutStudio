@@ -32,7 +32,11 @@ jobs:
           cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel 2
           Copy-Item build/bin/OpenCutStudio.exe dist/
-          & "$env:Qt6_DIR/bin/windeployqt.exe" dist/OpenCutStudio.exe --release --no-translations --no-opengl-sw
+          $windeploy = Get-ChildItem -Path $env:QT_ROOT_DIR, $env:Qt6_DIR, "${{ github.workspace }}" -Recurse -Filter windeployqt.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $windeploy) { $windeploy = Get-Command windeployqt.exe -ErrorAction SilentlyContinue }
+          if (-not $windeploy) { Get-ChildItem -Path "C:/Qt" -Recurse -Filter windeployqt.exe -ErrorAction SilentlyContinue | Select-Object -First 1 | ForEach-Object { $windeploy = $_ } }
+          Write-Host "windeployqt: $($windeploy.Source ?? $windeploy.FullName)"
+          & ($windeploy.Source ?? $windeploy.FullName) dist/OpenCutStudio.exe --release --no-translations --no-opengl-sw
       - name: Zip portable
         shell: pwsh
         run: Compress-Archive dist/* OpenCutStudio-windows-x64.zip -Force
