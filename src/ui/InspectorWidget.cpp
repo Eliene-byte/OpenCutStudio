@@ -1,5 +1,10 @@
 #include "ui/InspectorWidget.h"
-#include <QFormLayout> <QDoubleSpinBox> <QLineEdit> <QSpinBox> <QComboBox> <QLabel>
+#include <QFormLayout>
+#include <QDoubleSpinBox>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QComboBox>
+#include <QLabel>
 InspectorWidget::InspectorWidget(QWidget *p): QWidget(p) {
     auto *f = new QFormLayout(this);
     f->addRow(new QLabel("<b>Inspetor (Cor/Efeito)</b>"));

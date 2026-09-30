@@ -1,5 +1,6 @@
 #include "ui/TimelineWidget.h"
-#include <QPainter> <QMouseEvent>
+#include <QPainter>
+#include <QMouseEvent>
 TimelineWidget::TimelineWidget(QWidget *p): QWidget(p){ setMinimumHeight(160); }
 void TimelineWidget::setProject(Project *proj){ m_proj=proj; update(); }
 void TimelineWidget::paintEvent(QPaintEvent*) {

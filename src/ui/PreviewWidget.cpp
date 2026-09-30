@@ -5,4 +5,4 @@ PreviewWidget::PreviewWidget(QWidget *p): QWidget(p) {
     auto *l = new QVBoxLayout(this); l->addWidget(m_v); setLayout(l);
 }
 void PreviewWidget::load(const QString &f){ m_p->setSource(QUrl::fromLocalFile(f)); m_p->play(); }
-void PreviewWidget::playPause(){ m_p->isPlaying() ? m_p->pause() : m_p->play(); }
+void PreviewWidget::playPause(){ m_p->playbackState() == QMediaPlayer::PlayingState ? m_p->pause() : m_p->play(); }

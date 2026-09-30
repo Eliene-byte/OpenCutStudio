@@ -4,9 +4,20 @@
 #include "ui/InspectorWidget.h"
 #include "ui/MediaBinWidget.h"
 #include "effects/EffectChain.h"
-#include <QSplitter> <QMenuBar> <QToolBar> <QFileDialog> <QTextEdit> <QComboBox>
-#include <QProgressBar> <QDockWidget> <QMessageBox> <QJsonDocument> <QFile>
-#include <QInputDialog> <QUuid> <QLabel>
+#include <QSplitter>
+#include <QMenuBar>
+#include <QToolBar>
+#include <QFileDialog>
+#include <QTextEdit>
+#include <QComboBox>
+#include <QProgressBar>
+#include <QDockWidget>
+#include <QMessageBox>
+#include <QJsonDocument>
+#include <QFile>
+#include <QInputDialog>
+#include <QUuid>
+#include <QLabel>
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent) {
     setWindowTitle("OpenCut Studio — editor leve open-source");
