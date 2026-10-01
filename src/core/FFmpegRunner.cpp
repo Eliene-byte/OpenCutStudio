@@ -34,7 +34,8 @@ double FFmpegRunner::probeDuration(const QString &file) {
 }
 QProcess *FFmpegRunner::run(const QStringList &args, const QString &workDir) {
     auto *p = new QProcess(this);
-    if (!workDir.isEmpty()) p->setWorkingDirectory(workDir);
+    // Roda sempre na pasta do app: ffmpeg acha fonts/relativo e não depende de PATH
+    p->setWorkingDirectory(workDir.isEmpty() ? QCoreApplication::applicationDirPath() : workDir);
     connect(p, &QProcess::readyReadStandardError, this, [this,p](){ emit logLine(QString::fromUtf8(p->readAllStandardError())); });
     connect(p, &QProcess::readyReadStandardOutput, this, [this,p](){ emit logLine(QString::fromUtf8(p->readAllStandardOutput())); });
     p->start(ffmpegPath(), args);

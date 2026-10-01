@@ -1,0 +1,15 @@
+OpenCut Studio - PORTATIL (zero instalacao)
+
+COMO USAR:
+1. Extraia o ZIP inteiro numa pasta (ex: Documentos\OpenCut).
+2. Duplo clique em Abrir-OpenCut.bat (ou OpenCutStudio.exe).
+3. Pronto. Nada para instalar.
+
+O QUE JA VEM JUNTO:
+- Qt6 (interface) + plugins platforms/
+- ffmpeg.exe + ffprobe.exe (corte/export/thumbnail)
+- fonts/DejaVuSans.ttf (legendas sem depender do Windows)
+- Runtime MinGW (libgcc/libstdc++/libwinpthread via windeployqt --compiler-runtime)
+
+NAO PRECISA: instalar Qt, ffmpeg, codecs, Visual C++, Python, nada.
+Requisito: Windows 10/11 64-bit. Roda em 2GB RAM.

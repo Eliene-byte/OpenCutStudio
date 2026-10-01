@@ -36,14 +36,23 @@ jobs:
           if (-not $windeploy) { Get-ChildItem -Path "C:/Qt" -Recurse -Filter windeployqt.exe -ErrorAction SilentlyContinue | Select-Object -First 1 | ForEach-Object { $windeploy = $_ } }
           Write-Host "windeployqt: $($windeploy.Source ?? $windeploy.FullName)"
           & ($windeploy.Source ?? $windeploy.FullName) dist/OpenCutStudio.exe --release --no-translations --compiler-runtime
+          # ---- Pacote 100% portatil: fonte + qt.conf + launcher + leia-me ----
+          New-Item -ItemType Directory -Force -Path dist/fonts | Out-Null
+          Invoke-WebRequest -Uri https://github.com/dejavu-fonts/dejavu-fonts/raw/version_2_37/ttf/DejaVuSans.ttf -OutFile dist/fonts/DejaVuSans.ttf
+          Copy-Item assets/qt.conf dist/qt.conf
+          Copy-Item assets/Abrir-OpenCut.bat dist/Abrir-OpenCut.bat
+          Copy-Item assets/LEIAME-PORTATIL.txt dist/LEIAME-PORTATIL.txt
+          # Remove dep de VC++: confirma runtime MinGW junto
+          Write-Host "=== runtime ==="; Get-ChildItem dist/*.dll | Format-Table Name, Length
       - name: Verificação (sem abrir GUI — runner é headless)
         shell: pwsh
         run: |
           Write-Host "=== dist ==="; Get-ChildItem dist | Format-Table Name, Length
-          if (-not (Test-Path "dist/OpenCutStudio.exe")) { Write-Error "exe ausente"; exit 1 }
-          if (-not (Test-Path "dist/platforms/qwindows.dll")) { Write-Error "qwindows.dll ausente — deploy falhou"; exit 1 }
-          if (-not (Test-Path "dist/Qt6Core.dll")) { Write-Error "Qt6Core.dll ausente"; exit 1 }
-          Write-Host "Deploy OK — teste visual deve ser feito no seu notebook, não no runner headless."
+          Write-Host "=== fonts ==="; Get-ChildItem dist/fonts
+          foreach ($need in @("dist/OpenCutStudio.exe","dist/ffmpeg.exe","dist/ffprobe.exe","dist/platforms/qwindows.dll","dist/Qt6Core.dll","dist/Qt6Widgets.dll","dist/fonts/DejaVuSans.ttf","dist/qt.conf","dist/Abrir-OpenCut.bat","dist/LEIAME-PORTATIL.txt")) {
+            if (-not (Test-Path $need)) { Write-Error "FALTANDO: $need"; exit 1 }
+          }
+          Write-Host "Portatil OK: exe + Qt + ffmpeg + fonte + launcher."
       - name: Zip portable
         shell: pwsh
         run: Compress-Archive dist/* OpenCutStudio-windows-x64.zip -Force

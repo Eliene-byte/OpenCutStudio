@@ -1,5 +1,18 @@
 #include "EffectChain.h"
 #include "EffectsLibrary.h"
+#include <QCoreApplication>
+#include <QFileInfo>
+
+// Fonte 100% portátil: usa fonts/DejaVuSans.ttf ao lado do exe (bundled no zip).
+// Fallback para arial do Windows se rodando de build local sem fonts/.
+static QString bundledFont() {
+    QString app = QCoreApplication::applicationDirPath();
+    QString b = app + "/fonts/DejaVuSans.ttf";
+    if (QFileInfo::exists(b)) return "fonts/DejaVuSans.ttf";
+    QString a = "C:/Windows/Fonts/arial.ttf";
+    if (QFileInfo::exists(a)) return "C\\:/Windows/Fonts/arial.ttf";
+    return "";
+}
 
 QString EffectChain::eqFilter(const Clip &c) {
     QString f = QString("eq=brightness=%1:contrast=%2:saturation=%3")
@@ -54,9 +67,10 @@ EffectChain::Plan EffectChain::build(const Project &p, const QString &outPath, c
                 << QString("color=c=black:s=%1x%2:r=%3:d=%4").arg(p.width).arg(p.height).arg(p.fps).arg(c.duration);
             QString chain = QString("[%1:v]setpts=PTS-STARTPTS,%2,settb=AVTB,fps=%3")
                 .arg(idx).arg(eqFilter(c)).arg(p.fps);
-            if (!c.text.isEmpty())
-                chain += QString(",drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='%1':fontsize=%2:fontcolor=%3:x=(w-text_w)/2:y=(h-text_h)/2")
-                    .arg(esc(c.text)).arg(c.textSize).arg(c.textColor);
+            QString ff = bundledFont();
+            if (!c.text.isEmpty() && !ff.isEmpty())
+                chain += QString(",drawtext=fontfile='%1':text='%2':fontsize=%3:fontcolor=%4:x=(w-text_w)/2:y=(h-text_h)/2")
+                    .arg(ff).arg(esc(c.text)).arg(c.textSize).arg(c.textColor);
             chain += QString("[v%1]").arg(vCount);
             vc << chain;
             idx++; vCount++;
@@ -71,10 +85,11 @@ EffectChain::Plan EffectChain::build(const Project &p, const QString &outPath, c
                        << "-i" << c.filePath;
         QString chain = QString("[%1:v]setpts=PTS-STARTPTS,scale=%2:%3:flags=fast_bilinear,%4,settb=AVTB,fps=%5")
             .arg(idx).arg(p.width).arg(p.height).arg(eqFilter(c)).arg(p.fps);
-        // texto simples sobreposto (precisa fontfile no Windows senão o ffmpeg falha)
-        if (!c.text.isEmpty())
-            chain += QString(",drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':text='%1':fontsize=%2:fontcolor=%3:x=(w-text_w)/2:y=h-80")
-                .arg(esc(c.text)).arg(c.textSize).arg(c.textColor);
+        // texto simples sobreposto (fonte bundled; sem fonte, pula em vez de quebrar o export)
+        QString ffb = bundledFont();
+        if (!c.text.isEmpty() && !ffb.isEmpty())
+            chain += QString(",drawtext=fontfile='%1':text='%2':fontsize=%3:fontcolor=%4:x=(w-text_w)/2:y=h-80")
+                .arg(ffb).arg(esc(c.text)).arg(c.textSize).arg(c.textColor);
         chain += QString("[v%1]").arg(vCount);
         vc << chain;
         idx++; vCount++;
