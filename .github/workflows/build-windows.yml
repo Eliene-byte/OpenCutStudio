@@ -38,7 +38,18 @@ jobs:
           & ($windeploy.Source ?? $windeploy.FullName) dist/OpenCutStudio.exe --release --no-translations --compiler-runtime
           # ---- Pacote 100% portatil: fonte + qt.conf + launcher + leia-me ----
           New-Item -ItemType Directory -Force -Path dist/fonts | Out-Null
-          Invoke-WebRequest -Uri https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/version_2_37/ttf/DejaVuSans.ttf -OutFile dist/fonts/DejaVuSans.ttf
+          # Fonte bundled (opcional: se falhar, o app usa arial do Windows)
+          $fontUrls = @(
+            "https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/master/ttf/DejaVuSans.ttf",
+            "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf",
+            "https://raw.githubusercontent.com/liberationfonts/liberation-fonts/files/LiberationSans-Regular.ttf"
+          )
+          $gotFont = $false
+          foreach ($u in $fontUrls) {
+            try { Invoke-WebRequest -Uri $u -OutFile dist/fonts/DejaVuSans.ttf -TimeoutSec 30; $gotFont = $true; Write-Host "Fonte OK: $u"; break }
+            catch { Write-Host "Fonte falhou: $u" }
+          }
+          if (-not $gotFont) { Write-Host "AVISO: sem fonte bundled, usando fallback arial"; "fallback" | Out-File dist/fonts/FALLBACK.txt }
           Copy-Item assets/qt.conf dist/qt.conf
           Copy-Item assets/Abrir-OpenCut.bat dist/Abrir-OpenCut.bat
           Copy-Item assets/LEIAME-PORTATIL.txt dist/LEIAME-PORTATIL.txt
@@ -49,9 +60,10 @@ jobs:
         run: |
           Write-Host "=== dist ==="; Get-ChildItem dist | Format-Table Name, Length
           Write-Host "=== fonts ==="; Get-ChildItem dist/fonts
-          foreach ($need in @("dist/OpenCutStudio.exe","dist/ffmpeg.exe","dist/ffprobe.exe","dist/platforms/qwindows.dll","dist/Qt6Core.dll","dist/Qt6Widgets.dll","dist/fonts/DejaVuSans.ttf","dist/qt.conf","dist/Abrir-OpenCut.bat","dist/LEIAME-PORTATIL.txt")) {
+          foreach ($need in @("dist/OpenCutStudio.exe","dist/ffmpeg.exe","dist/ffprobe.exe","dist/platforms/qwindows.dll","dist/Qt6Core.dll","dist/Qt6Widgets.dll","dist/qt.conf","dist/Abrir-OpenCut.bat","dist/LEIAME-PORTATIL.txt")) {
             if (-not (Test-Path $need)) { Write-Error "FALTANDO: $need"; exit 1 }
           }
+          if (-not (Test-Path "dist/fonts/DejaVuSans.ttf")) { Write-Host "AVISO: fonte ausente, fallback arial (ok em Windows)" }
           Write-Host "Portatil OK: exe + Qt + ffmpeg + fonte + launcher."
       - name: Zip portable
         shell: pwsh
