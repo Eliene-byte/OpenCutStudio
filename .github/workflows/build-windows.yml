@@ -38,7 +38,7 @@ jobs:
           & ($windeploy.Source ?? $windeploy.FullName) dist/OpenCutStudio.exe --release --no-translations --compiler-runtime
           # ---- Pacote 100% portatil: fonte + qt.conf + launcher + leia-me ----
           New-Item -ItemType Directory -Force -Path dist/fonts | Out-Null
-          Invoke-WebRequest -Uri https://github.com/dejavu-fonts/dejavu-fonts/raw/version_2_37/ttf/DejaVuSans.ttf -OutFile dist/fonts/DejaVuSans.ttf
+          Invoke-WebRequest -Uri https://raw.githubusercontent.com/dejavu-fonts/dejavu-fonts/version_2_37/ttf/DejaVuSans.ttf -OutFile dist/fonts/DejaVuSans.ttf
           Copy-Item assets/qt.conf dist/qt.conf
           Copy-Item assets/Abrir-OpenCut.bat dist/Abrir-OpenCut.bat
           Copy-Item assets/LEIAME-PORTATIL.txt dist/LEIAME-PORTATIL.txt
